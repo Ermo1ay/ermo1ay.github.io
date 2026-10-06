@@ -10,7 +10,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body><button id="authBtn" class="auth-btn" onclick="window.soundwaveAuth?.openModal()">Войти</button>
 <div class="app">
   <aside class="sidebar" id="sidebar">
     <div class="logo"><span class="logo-mark">♪</span> SoundWave</div>
@@ -156,5 +156,125 @@
 <div class="toast" id="toast"></div>
 <script src="script.js"></script>
 <audio id="audioPlayer" preload="metadata"></audio>
-</body>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
+import {
+  getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut,
+  createUserWithEmailAndPassword, signInWithEmailAndPassword,
+  sendPasswordResetEmail, updateProfile
+} from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAjQ_Z6o2Hk9O4SJHWAArhuB7F4_Z3t5jc",
+  authDomain: "soundwave-62949.firebaseapp.com",
+  projectId: "soundwave-62949",
+  storageBucket: "soundwave-62949.firebasestorage.app",
+  messagingSenderId: "729653602408",
+  appId: "1:729653602408:web:67d8fc160b957b6fb433dd"
+};
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const provider = new GoogleAuthProvider();
+
+const modal = () => document.getElementById('authModal');
+const errorText = () => document.getElementById('authError');
+const modeTitle = () => document.getElementById('authModeTitle');
+const nameWrap = () => document.getElementById('authNameWrap');
+const submitBtn = () => document.getElementById('authSubmit');
+
+function setError(message='') { if(errorText()) errorText().textContent = message; }
+function setMode(mode) {
+  const register = mode === 'register';
+  document.getElementById('authMode').value = mode;
+  modeTitle().textContent = register ? 'Регистрация в SoundWave' : 'Вход в SoundWave';
+  nameWrap().classList.toggle('hidden-field', !register);
+  submitBtn().textContent = register ? 'Создать аккаунт' : 'Войти';
+  document.getElementById('authSwitch').innerHTML = register
+    ? 'Уже есть аккаунт? <button type="button" onclick="window.soundwaveAuth.setMode('login')">Войти</button>'
+    : 'Нет аккаунта? <button type="button" onclick="window.soundwaveAuth.setMode('register')">Зарегистрироваться</button>';
+  setError('');
+}
+
+async function submitEmail() {
+  const mode = document.getElementById('authMode').value;
+  const name = document.getElementById('authName').value.trim();
+  const email = document.getElementById('authEmail').value.trim();
+  const password = document.getElementById('authPassword').value;
+  if (!email || !password || (mode === 'register' && !name)) {
+    setError('Заполни все обязательные поля.'); return;
+  }
+  setError('');
+  submitBtn().disabled = true;
+  try {
+    if (mode === 'register') {
+      const cred = await createUserWithEmailAndPassword(auth, email, password);
+      if (name) await updateProfile(cred.user, { displayName: name });
+    } else {
+      await signInWithEmailAndPassword(auth, email, password);
+    }
+    modal().classList.add('hidden');
+  } catch (e) {
+    const messages = {
+      'auth/email-already-in-use': 'Этот email уже зарегистрирован.',
+      'auth/invalid-email': 'Проверь email.',
+      'auth/weak-password': 'Пароль слишком слабый. Используй минимум 6 символов.',
+      'auth/invalid-credential': 'Неверный email или пароль.',
+      'auth/user-not-found': 'Пользователь не найден.',
+      'auth/wrong-password': 'Неверный пароль.'
+    };
+    setError(messages[e.code] || 'Ошибка: ' + e.message);
+  } finally { submitBtn().disabled = false; }
+}
+
+window.soundwaveAuth = {
+  openModal: () => { modal().classList.remove('hidden'); setMode(auth.currentUser ? 'login' : 'login'); },
+  closeModal: () => modal().classList.add('hidden'),
+  setMode,
+  submitEmail,
+  google: async () => {
+    try { await signInWithPopup(auth, provider); modal().classList.add('hidden'); }
+    catch(e) { setError('Ошибка входа Google: ' + e.message); }
+  },
+  resetPassword: async () => {
+    const email = document.getElementById('authEmail').value.trim();
+    if (!email) { setError('Сначала введи email.'); return; }
+    try {
+      await sendPasswordResetEmail(auth, email);
+      setError('Письмо для восстановления отправлено на email.');
+    } catch(e) { setError('Не удалось отправить письмо: ' + e.message); }
+  },
+  logout: () => signOut(auth)
+};
+
+onAuthStateChanged(auth, user => {
+  const b=document.getElementById('authBtn');
+  if(!b) return;
+  if (user) {
+    b.textContent = '👤 ' + (user.displayName || user.email?.split('@')[0] || 'Аккаунт');
+    b.onclick = () => window.soundwaveAuth.logout();
+    b.title = 'Нажми, чтобы выйти';
+  } else {
+    b.textContent = 'Войти';
+    b.onclick = () => window.soundwaveAuth.openModal();
+    b.title = 'Войти или зарегистрироваться';
+  }
+  window.soundwaveUser=user;
+});
+</script><div id="authModal" class="auth-modal hidden">
+<div class="auth-card">
+<button class="auth-close" onclick="window.soundwaveAuth.closeModal()">×</button>
+<h2 id="authModeTitle">Вход в SoundWave</h2>
+<p class="auth-subtitle">Войди или создай новый аккаунт.</p>
+<input type="hidden" id="authMode" value="login">
+<div id="authNameWrap" class="hidden-field"><input id="authName" type="text" placeholder="Имя" autocomplete="name"></div>
+<input id="authEmail" type="email" placeholder="Email" autocomplete="email">
+<input id="authPassword" type="password" placeholder="Пароль (минимум 6 символов)" autocomplete="current-password">
+<button id="authSubmit" onclick="window.soundwaveAuth.submitEmail()">Войти</button>
+<button class="google-btn" onclick="window.soundwaveAuth.google()">Продолжить с Google</button>
+<button class="link-btn" onclick="window.soundwaveAuth.resetPassword()">Забыли пароль?</button>
+<div id="authError" class="auth-error"></div>
+<div id="authSwitch" class="auth-switch">Нет аккаунта? <button type="button" onclick="window.soundwaveAuth.setMode('register')">Зарегистрироваться</button></div>
+<div class="auth-divider"><span>или</span></div>
+<button class="telegram-btn" onclick="alert('Telegram подключим следующим шагом после настройки Telegram-бота.')">Продолжить с Telegram</button>
+</div></div></body>
 </html>

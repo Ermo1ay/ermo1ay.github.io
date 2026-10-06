@@ -1,0 +1,14 @@
+SoundWave — регистрация и вход
+
+В этой версии есть:
+- регистрация по Email + пароль;
+- вход по Email + пароль;
+- вход через Google;
+- восстановление пароля по Email;
+- кнопка Telegram подготовлена для следующего этапа.
+
+ВАЖНО: в Firebase открой Authentication → Sign-in method и включи провайдер Email/Password. Google тоже должен быть включён.
+
+Для GitHub Pages в Authentication → Settings → Authorized domains должен быть добавлен: ermolay.github.io
+
+Firebase Web API key в клиентском коде не является секретом. Никому не передавай OAuth client secret или приватные ключи.
