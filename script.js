@@ -1,12 +1,8 @@
-const tracks=[
-{title:"Midnight City",artist:"M83",duration:"3:44",cover:"cover-a"},
-{title:"Afterglow",artist:"RÜFÜS DU SOL",duration:"4:12",cover:"cover-b"},
-{title:"The Less I Know",artist:"Tame Impala",duration:"3:36",cover:"cover-c"},
-{title:"Innerbloom",artist:"RÜFÜS DU SOL",duration:"9:38",cover:"cover-d"},
-{title:"Sunset Lover",artist:"Petit Biscuit",duration:"3:58",cover:"cover-b"},
-{title:"Ocean Drive",artist:"Duke Dumont",duration:"3:26",cover:"cover-a"},
-{title:"Electric Feel",artist:"MGMT",duration:"3:49",cover:"cover-c"},
-{title:"Intro",artist:"The xx",duration:"2:07",cover:"cover-d"}];
+const tracks = [
+  { title: "Pressure Memory", artist: "Nex Coper", src: "music/pressure-memory.mp3" },
+  { title: "I Turn To You (Ovrtkrs 2026 Remix)", artist: "Melanie C", src: "music/i-turn-to-you-ovrtkrs-2026-remix.mp3" },
+  { title: "Закрытая дверь", artist: "Admiral Hustler", src: "music/zakrytaya-dver.mp3" }
+];
 const artists=[["M83","Electronic","M"],["RÜFÜS DU SOL","Electronic","R"],["Tame Impala","Indie","T"],["The Weeknd","R&B","W"],["Dua Lipa","Pop","D"],["Fred again..","Dance","F"]];
 const $=id=>document.getElementById(id); const trackGrid=$("trackGrid"), favoriteGrid=$("favoriteGrid"), artistRow=$("artistRow"), searchInput=$("searchInput"), toast=$("toast");
 let currentIndex=0,playing=false,elapsed=0,timer=null,shuffle=false,repeat=false;
